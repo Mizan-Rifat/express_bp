@@ -7,13 +7,11 @@ export class UserService {
 
   async getAllUsers() {
     const db = this.dbService.getDb();
-    const redisClient = this.redisService.getClient();
-
-    // Check if the data is already in the cache
-    const cachedData = await redisClient.get('name');
-    if (cachedData) {
-      return cachedData;
-    }
-    return await db.collection('users').find().toArray();
+    // const redisClient = this.redisService.getClient();
+    // const cachedData = await redisClient.get('name');
+    // if (cachedData) {
+    //   return cachedData;
+    // }
+    return await db.collection('resumes').find().skip(0).limit(10).toArray();
   }
 }

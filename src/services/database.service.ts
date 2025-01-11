@@ -1,4 +1,4 @@
-import { Db, MongoClient, ServerApiVersion } from 'mongodb';
+import { Collection, Db, MongoClient, ServerApiVersion, WithId } from 'mongodb';
 
 export class DatabaseService {
   private client: MongoClient;
@@ -47,6 +47,25 @@ export class DatabaseService {
       throw new Error('Database not initialized. Call connect first.');
     }
     return this.db;
+  }
+
+  public async paginate<T extends Document>(
+    collection: Collection<T>,
+    query: Record<string, any> = {},
+    page: number = 1,
+    pageSize: number = 10
+  ): Promise<{ data: WithId<T>[]; total: number; page: number; pageSize: number }> {
+    const skip = (page - 1) * pageSize;
+    const cursor = collection.find(query).skip(skip).limit(pageSize);
+    const data = await cursor.toArray();
+    const total = await collection.countDocuments(query);
+
+    return {
+      data,
+      total,
+      page,
+      pageSize
+    };
   }
 
   async close() {
