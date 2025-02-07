@@ -51,4 +51,47 @@ export class RabbitMQService {
       console.error('Error closing RabbitMQ connection:', error);
     }
   }
+
+  public async publishExchange(
+    exchange: string,
+    type: 'fanout' | 'direct' | 'topic',
+    routingKey: string,
+    message: string
+  ) {
+    try {
+      await this.channel?.assertExchange(exchange, 'fanout', { durable: false });
+      this.channel?.publish(exchange, routingKey, Buffer.from(message));
+    } catch (err) {
+      console.error('Failed to publish message to exchange:', err);
+    }
+  }
+
+  public async consumeExchange(
+    exchange: string,
+    queueName: string,
+    type: 'fanout' | 'direct' | 'topic',
+    routingKey: string,
+    onConsume: (msg: any) => void
+  ) {
+    try {
+      await this.channel?.assertExchange(exchange, type, { durable: false });
+      const queue = await this.channel?.assertQueue(queueName, { exclusive: true });
+      if (queue) {
+        this.channel?.bindQueue(queue.queue, exchange, routingKey);
+        this.channel?.consume(
+          queue.queue,
+          msg => {
+            if (msg) {
+              console.log({ message: msg.content.toString() });
+              onConsume(msg.content.toString());
+              this.channel?.ack(msg);
+            }
+          },
+          { noAck: false }
+        );
+      }
+    } catch (err) {
+      console.error('Failed to consume messages from exchange:', err);
+    }
+  }
 }

@@ -36,6 +36,6 @@
     "ignore": [
       "node_modules"
     ],
-    "exec": "ts-node ./src/index.ts"
+    "exec": "ts-node ./src/main.ts"
   }
 }
